@@ -1,0 +1,89 @@
+
+version: "3"
+
+services:
+#  rabbit:
+#    image: rabbitmq:3-management
+#    platform: linux/amd64
+#    ports:
+#      - "9090:15672"
+#      - "4369:4369"
+#      - "5672:5672"
+#    networks:
+#      - network
+#    restart: always
+  mysql:
+    image: mysql:8.0
+    platform: linux/amd64
+    ports:
+      - "3306"
+    networks:
+      - network
+    environment:
+      MYSQL_ROOT_PASSWORD: "connect"
+    restart: always
+  cashier:
+    image: spring-cashier
+    platform: linux/amd64
+    depends_on:
+      - mysql
+#      - rabbit
+    ports:
+      - "9090"
+    networks:
+      - network
+    environment:
+      MYSQL_HOST: "mysql"
+      MYSQL_USERNAME: "root"
+      MYSQL_PASSWORD: "connect"
+      MYSQL_SCHEMA: "cashier"
+#      RABBIT_HOST: "rabbit"
+#      RABBIT_USERNAME: "guest"
+#      RABBIT_PASSWORD: "guest"
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 2
+#  worker:
+#    image: spring-cashier-worker
+#    platform: linux/amd64
+#    depends_on:
+#      - mysql
+#      - rabbit
+#    networks:
+#      - network
+#    environment:
+#      MYSQL_HOST: "mysql"
+#      MYSQL_USERNAME: "root"
+#      MYSQL_PASSWORD: "cmpe172"
+#      RABBIT_HOST: "rabbit"
+#      RABBIT_USERNAME: "guest"
+#      RABBIT_PASSWORD: "guest"
+#    restart: always
+#    deploy:
+#      mode: replicated
+#      replicas: 2
+  lb:
+    image: eeacms/haproxy
+    platform: linux/amd64
+    depends_on:
+      - cashier
+    ports:
+      - "80:5000"
+      - "1936:1936"
+    networks:
+      - network
+    environment:
+      BACKENDS: "cashier"
+      BACKENDS_PORT: "9090"
+      DNS_ENABLED: "true"
+      COOKIES_ENABLED: "false"
+      LOG_LEVEL: "info"
+
+volumes:
+  schemas:
+    external: false
+
+networks:
+  network:
+    driver: bridge

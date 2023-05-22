@@ -1,0 +1,58 @@
+
+version: "3"
+
+services:
+  mysql:
+    image: mysql:8.0
+    platform: linux/amd64
+    volumes:
+      - /tmp:/tmp
+    networks:
+      - network
+    ports:
+      - "3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "connect"
+    restart: always
+  starbucks:
+    image: spring-starbucks-api
+    platform: linux/amd64
+    depends_on:
+    - mysql
+    volumes:
+      - /tmp:/tmp
+    networks:
+      - network
+    ports:
+      - "8080"
+    environment:
+      MYSQL_HOST: "mysql"
+      MYSQL_USER: "root"
+      MYSQL_PASS: "connect"
+      MYSQL_SCHEMA: "starbucks"
+    restart: always
+  lb:
+    image: eeacms/haproxy
+    platform: linux/amd64
+    depends_on:
+    - starbucks
+    ports:
+    - "80:5000"
+    - "1936:1936"
+    environment:
+      BACKENDS: "starbucks"
+      BACKENDS_PORT: "8080"
+      DNS_ENABLED: "true"
+      COOKIES_ENABLED: "false"
+      LOG_LEVEL: "info"
+    networks:
+      - network
+
+volumes:
+  schemas:
+    external: false
+
+networks:
+  network:
+    driver: bridge
+

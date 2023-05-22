@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spring-cashier
+  namespace: default
+  labels:
+    name: spring-cashier
+spec:
+  containers:
+    - image: jywheel/spring-cashier
+      name: spring-cashier
+      ports:
+        - containerPort: 9090
+          name: http
+          protocol: TCP

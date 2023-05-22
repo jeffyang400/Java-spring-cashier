@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-starbucks-worker-deployment
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      name: spring-starbucks-worker
+  replicas: 2 # tells deployment to run 2 pods matching the template
+  template: # create pods using pod definition in this template
+    metadata:
+      labels:
+        name: spring-starbucks-worker
+    spec:
+      containers:
+        - name: spring-starbucks-worker
+          image: jywheel/starbucks-worker
+          env:
+            - name: MYSQL_HOST
+              value: "<MYSQL_HOST>"
+            - name: MYSQL_USERNAME
+              value: "<MYSQL_USERNAME"
+            - name: MYSQL_PASSWORD
+              value: "<MYSQL_PASSWORD>"
+            - name: RABBIT_HOST
+              value:  "<RABBIT_HOST>"
+            - name:  RABBIT_USERNAME
+              value:  "<RABBIT_USERNAME>"
+            - name:  RABBIT_PASSWORD
+              value:  "<RABBIT_PASSWORD>"
+            - name: RABBIT_PORT
+              value: "<RABBIT_PORT>"
+          ports:
+            - containerPort: 6060

@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-cashier-deployment
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      name: spring-cashier
+  replicas: 2
+  template: # create pods using pod definition in this template
+    metadata:
+      labels:
+        name: spring-cashier
+    spec:
+      containers:
+        - name: spring-cashier
+          image: jywheel/spring-cashier
+          env:
+            - name: MYSQL_HOST
+              value: "<MYSQL_HOST>"
+            - name: MYSQL_USERNAME
+              value: "<MYSQL_USERNAME>"
+            - name: MYSQL_PASSWORD
+              value: "<MYSQL_PASSWORD>"
+            - name: API_KEY
+              value: "<API_KEY>"
+            - name: API_HOST
+              value: "<API_HOST>"
+          ports:
+            - containerPort: 9090

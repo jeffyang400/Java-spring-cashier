@@ -1,0 +1,139 @@
+
+version: "3"
+
+services:
+  rabbit:
+    image: rabbitmq:3-management
+    platform: linux/amd64
+    ports:
+      - "7070:15672"
+      - "4369:4369"
+      - "5672:5672"
+    networks:
+      - network
+    restart: always
+  cashier:
+    image: spring-cashier
+    platform: linux/amd64
+    depends_on:
+    - kong
+    - mysql
+    ports:
+    - "9090:9090"
+    networks:
+      - network     
+    environment:
+      API_KEY: "2H3fONTa8ugl1IcVS7CjLPnPIS2Hp9dJ"      
+      API_HOST: "kong:8000/api"      
+      MYSQL_HOST: "mysql"
+      MYSQL_USER: "root"
+      MYSQL_PASS: "connect"
+      MYSQL_SCHEMA: "cashier"
+    restart: always  
+  kong:
+    image: kong:2.4.0
+    platform: linux/amd64
+    depends_on:
+    - starbucks-service    
+    networks:
+      - network     
+    restart: always  
+    ports:
+    - "80:8000"
+    - "443:8443"
+    - "8001:8001"
+    - "8444:8444"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_PROXY_ACCESS_LOG: "/dev/stdout"
+      KONG_ADMIN_ACCESS_LOG: "/dev/stdout"
+      KONG_PROXY_ERROR_LOG: "/dev/stderr"
+      KONG_ADMIN_ERROR_LOG: "/dev/stderr"
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001, 0.0.0.0:8444 ssl"
+  jumpbox:
+    image: ubuntu
+    platform: linux/amd64
+    networks:
+      - network     
+    restart: always  
+    entrypoint:
+      - "sleep"
+      - "3600"
+  mysql:
+    image: mysql:8.0
+    platform: linux/amd64
+    networks:
+      - network   
+    ports:
+      - "3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "connect"
+    restart: always     
+  starbucks:
+    image: spring-starbucks-api
+    platform: linux/amd64
+    depends_on:
+    - mysql
+    - rabbit
+    networks:
+      - network   
+    ports:
+      - "8080"
+    environment:
+      MYSQL_HOST: "mysql"
+      MYSQL_USER: "root"
+      MYSQL_PASS: "connect"
+      MYSQL_SCHEMA: "starbucks"
+      RABBIT_HOST: "rabbit"
+      RABBIT_USERNAME: "guest"
+      RABBIT_PASSWORD: "guest"
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 2
+  workers:
+    image: starbucks-worker
+    platform: linux/amd64
+    depends_on:
+      - mysql
+      - rabbit
+    networks:
+      - network
+    environment:
+      MYSQL_HOST: "mysql"
+      MYSQL_USER: "root"
+      MYSQL_PASS: "connect"
+      MYSQL_SCHEMA: "starbucks"
+      RABBIT_HOST: "rabbit"
+      RABBIT_USERNAME: "guest"
+      RABBIT_PASSWORD: "guest"
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 2
+  starbucks-service:
+    image: eeacms/haproxy
+    platform: linux/amd64
+    depends_on:
+    - starbucks
+    ports:
+    - "90:5000"
+    - "1936:1936"
+    environment:
+      HTTPCHK: "GET /ping"
+      BACKENDS: "starbucks"
+      BACKENDS_PORT: "8080"
+      DNS_ENABLED: "true"
+      COOKIES_ENABLED: "false"
+      LOG_LEVEL: "info"
+    networks:
+      - network
+
+volumes:
+  schemas:
+    external: false
+
+networks:
+  network:
+    driver: bridge
+

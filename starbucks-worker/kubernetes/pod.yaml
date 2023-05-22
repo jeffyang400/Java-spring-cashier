@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spring-starbucks-worker
+  namespace: default
+  labels:
+    name: spring-starbucks-worker
+spec:
+  containers:
+    - image: jywheel/starbucks-worker
+      name: spring-starbucks-worker
+      env:
+        - name: MYSQL_HOST
+          value: "<MYSQL_HOST>"
+        - name: MYSQL_USERNAME
+          value: "<MYSQL_USERNAME"
+        - name: MYSQL_PASSWORD
+          value: "<MYSQL_PASSWORD>"
+        - name: RABBIT_HOST
+          value: "<RABBIT_HOST>"
+        - name: RABBIT_USERNAME
+          value: "<RABBIT_USERNAME>"
+        - name: RABBIT_PASSWORD
+          value: "<RABBIT_PASSWORD>"
+        - name: RABBIT_PORT
+          value: "<RABBIT_PORT>"
+      ports:
+        - containerPort: 6060
+          name: http
+          protocol: TCP
