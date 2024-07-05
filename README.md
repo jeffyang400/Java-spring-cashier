@@ -2,16 +2,18 @@
 **Enterprise Software Class Project**
 Full Stack Spring Boot Enterprise application designed for a cashier to process drink orders from a customer's mobile app
 
-## Deploy on Docker
+## Deploy MySQL on Docker
 1. Navigate to the repository directory and start the database.
 ```
 docker run --platform=linux/amd64 -d --name mysql -td -p 3306:3306 -e MYSQL_ROOT_PASSWORD=<INSERT PASSWORD> mysql:8.0
 ```
-2. Set up the database by entering bash in the Docker console and creating the tables for storing orders and security sessions.
+2. Set up the database by entering bash in the Docker console and creating the tables for storing orders and security sessions. The console should prompt the user to enter the password, which is the same as the one from the previous command.
 ```
 //Enter MySQL Console
-mysql -u admin -p
-
+mysql -u root -p
+```
+3. Inside the MySQL console, create the tables for orders and cashier user information
+```
 //Create the Databases and grant permissions
 create database starbucks ;
 create database cashier;
@@ -19,7 +21,9 @@ create user 'admin'@'%' identified by 'welcome';
 grant all on cashier.* to 'admin'@'%';
 grant all on starbucks.* to 'admin'@'%';
 use cashier;
-
+```
+4. Create session tables to temporarily store user login sessions.
+```
 //Create Sessions Table
 CREATE TABLE SPRING_SESSION (
   PRIMARY_ID CHAR(36) NOT NULL,
@@ -44,12 +48,17 @@ CREATE TABLE SPRING_SESSION_ATTRIBUTES (
   CONSTRAINT SPRING_SESSION_ATTRIBUTES_FK FOREIGN KEY (SESSION_PRIMARY_ID) REFERENCES SPRING_SESSION(PRIMARY_ID) ON DELETE CASCADE
 ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;
 ```
-3. Then build the image for spring-cashier, starbucks-api, and starbucks-worker by using Make File commands in each projects' directory.
+5. Then build the image for spring-cashier, starbucks-api, and starbucks-worker by using Make File commands in each projects' directory.
 ```
 make docker-build
 ```
-4. Now deploy all the projects onto Docker using the Make File command.
+6. Now deploy all the projects onto Docker using the Make File command.
 ```
 make compose-up
 ```
-5. The application should now prompt the account creation screen on port localhost:8080.
+7. The application should now prompt the account creation screen on port localhost:8080.
+8. Now build the mobile app simulation by typing the following make command
+```
+make starbucks-app-run:
+```
+9. Enter the Starbucks mobile phone simulation and order a desired drink
